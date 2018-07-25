@@ -6,11 +6,11 @@
 provision_aws.sh
 
 # Data files - .zip, .csv
-tmp_test_data
 *.zip*
 data/tickers
-data/order
 data/backtest
+logs/**
+!logs/.gitkeep
 
 # Deployment
 .serverless/**
@@ -22,9 +22,6 @@ dist/**
 
 # Scratch files
 scratch/scratch.py
-
-possible_arbitrages_*
-analyses.ipynb
 
 # Intellij
 *.iml

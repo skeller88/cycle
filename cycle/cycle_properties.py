@@ -1,5 +1,6 @@
 import os
 
+from trading_platform.exchanges.data.enums import exchange_ids
 from trading_platform.exchanges.data.financial_data import FinancialData
 
 
@@ -11,6 +12,9 @@ class CycleProperties:
     # Add padding to the orders to increase the likelihood the orders will get filled
     order_padding_percent: FinancialData = FinancialData(os.environ.get('ORDER_PADDING_PERCENT', 0.02))
     balance_percent_per_trade: FinancialData = FinancialData(os.environ.get('BALANCE_PERCENT_PER_TRADE', 0.5))
+
+    # id of exchange on which to trade
+    exchange_id_to_trade: int = int(os.environ.get('EXCHANGE_ID_TO_TRADE', exchange_ids.binance))
 
     # hour start of buy window in UTC
     buy_window_utc_hour_start: int = int(os.environ.get('BUY_WINDOW_UTC_HOUR_START', 11))

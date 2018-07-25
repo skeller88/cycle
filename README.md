@@ -5,7 +5,7 @@
 due to pip not working, install pip after creating venv: https://askubuntu.com/questions/488529/pyvenv-3-4-error-returned-non-zero-exit-status-1
 ```
 cd <spread-dir>
-python3 -m venv venv --without-pip
+python3.6 -m venv venv --without-pip
 source venv/bin/activate
 curl https://bootstrap.pypa.io/get-pip.py | python
 deactivate
