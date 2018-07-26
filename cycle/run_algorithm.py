@@ -109,7 +109,6 @@ def main(logger: logging.Logger, live: bool, ticker_dir: str):
             ticker_df.set_index('app_create_timestamp_min', inplace=True)
 
             for ticker_period in ticker_df.index.unique():
-                print(ticker_period.to_datetime().hour)
                 tickers = ticker_df.loc[ticker_period]
                 TickerService.set_latest_tickers_from_file(exchanges_to_trade, tickers)
                 # 60 minute-level ticker files per hour. Execute the strategy a certain number of times per hour.

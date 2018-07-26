@@ -104,9 +104,10 @@ class CycleStrategyExecuterService(StrategyExecuterServiceAbc):
                 })
                 self.order_execution_service.execute_order(order, session=session, write_pending_order=True,
                                                            check_if_order_filled=True)
-                self.strategy_execution_dao.update_fetch_by_column(session=session, column_name='strategy_execution_id',
-                                                                   column_value=self.strategy_execution.strategy_execution_id,
-                                                                   update_dict={
-                                                                       'state': self.strategy_execution.state
-                                                                   },
-                                                                   commit=True)
+                self.strategy_execution_dao.update_fetch_by_column(
+                    session=session, column_name='strategy_execution_id',
+                    column_value=self.strategy_execution.strategy_execution_id,
+                    update_dict={
+                        'state': self.strategy_execution.state
+                    },
+                    commit=True)
