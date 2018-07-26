@@ -1,3 +1,4 @@
+import datetime
 from typing import Tuple, Optional
 
 from sqlalchemy.orm import scoped_session, Session
@@ -11,10 +12,11 @@ from trading_platform.exchanges.order_execution_service import OrderExecutionSer
 from trading_platform.storage.daos.strategy_execution_dao import StrategyExecutionDao
 from trading_platform.strategy.services.strategy_executer_service_abc import StrategyExecuterServiceAbc
 from trading_platform.strategy.strategy_execution import StrategyExecution
-from trading_platform.utils.datetime_operations import datetime_now_with_utc_offset
 
 
 class CycleStrategyExecuterService(StrategyExecuterServiceAbc):
+    strategy_base_id: str = 'cycle_strategy'
+
     def __init__(self, **kwargs):
         self.logger = kwargs.get('logger')
         self.order_execution_service: OrderExecutionService = kwargs.get('order_execution_service')
@@ -49,15 +51,23 @@ class CycleStrategyExecuterService(StrategyExecuterServiceAbc):
             }
         })
         self.strategy_execution = self.strategy_execution_dao.save(self.scoped_session_maker(),
-                                                                    popo=strategy_execution, commit=True)
+                                                                   popo=strategy_execution, commit=True)
 
     def step(self, **kwargs):
+        """
+        Args:
+         kwargs: Dict
+            exchange: ExchangeServiceAbc
+            now_datetime: datetime.datetime
+
+        """
         exchange: ExchangeServiceAbc = kwargs.get('exchange')
-        now: float = datetime_now_with_utc_offset().timestamp()
+        now: datetime.datetime = kwargs.get('now_datetime')
+        now_hour = now.hour
         order_side: Optional[int] = None
-        if self.buy_window[0] <= now < self.buy_window[1]:
+        if self.buy_window[0] <= now_hour < self.buy_window[1]:
             order_side = OrderSide.buy
-        elif self.sell_window[0] <= now < self.sell_window[1]:
+        elif self.sell_window[0] <= now_hour < self.sell_window[1]:
             order_side = OrderSide.sell
 
         if order_side is not None:
@@ -65,18 +75,21 @@ class CycleStrategyExecuterService(StrategyExecuterServiceAbc):
             exchange.fetch_latest_tickers()
 
             if order_side == OrderSide.buy:
-                order_amount: FinancialData = self.balance_percent_per_trade * exchange.get_balance(self.pair.base)
-                order_price: FinancialData = exchange.get_ticker(self.pair.name).ask * (
+                order_price: FinancialData = FinancialData(exchange.get_ticker(self.pair.name).ask) * (
                         one + self.order_padding_percent)
-                self.strategy_execution.state['buy_order_count'] += 1
+                order_amount: FinancialData = self.balance_percent_per_trade * exchange.get_balance(
+                    self.pair.base).free / order_price
             else:
                 order_amount: FinancialData = self.balance_percent_per_trade * exchange.get_balance(
-                    self.pair.quote)
-                order_price: FinancialData = exchange.get_ticker(self.pair.name).bid * (
+                    self.pair.quote).free
+                order_price: FinancialData = FinancialData(exchange.get_ticker(self.pair.name).bid) * (
                         one - self.order_padding_percent)
-                self.strategy_execution.state['sell_order_count'] += 1
 
-            if order_amount >= zero:
+            if order_amount > zero:
+                if order_side == OrderSide.buy:
+                    self.strategy_execution.state['buy_order_count'] += 1
+                else:
+                    self.strategy_execution.state['sell_order_count'] += 1
                 session: Session = self.scoped_session_maker()
                 order: Order = Order(**{
                     'exchange_id': exchange.exchange_id,
@@ -86,13 +99,13 @@ class CycleStrategyExecuterService(StrategyExecuterServiceAbc):
 
                     'base': self.pair.base,
                     'quote': self.pair.quote,
-                    'order_side': OrderSide.sell,
+                    'order_side': order_side,
                     'order_status': OrderStatus.open
                 })
                 self.order_execution_service.execute_order(order, session=session, write_pending_order=True,
                                                            check_if_order_filled=True)
                 self.strategy_execution_dao.update_fetch_by_column(session=session, column_name='strategy_execution_id',
-                                                                   column_value=self.strategy_execution.id,
+                                                                   column_value=self.strategy_execution.strategy_execution_id,
                                                                    update_dict={
                                                                        'state': self.strategy_execution.state
                                                                    },
