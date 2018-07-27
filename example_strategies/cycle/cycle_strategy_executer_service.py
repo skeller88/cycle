@@ -59,6 +59,7 @@ class CycleStrategyExecuterService(StrategyExecuterServiceAbc):
          kwargs: Dict
             exchange: ExchangeServiceAbc
             now_datetime: datetime.datetime
+            check_if_order_filled: bool
 
         """
         exchange: ExchangeServiceAbc = kwargs.get('exchange')
@@ -103,7 +104,7 @@ class CycleStrategyExecuterService(StrategyExecuterServiceAbc):
                     'order_status': OrderStatus.open
                 })
                 self.order_execution_service.execute_order(order, session=session, write_pending_order=True,
-                                                           check_if_order_filled=True)
+                                                           check_if_order_filled=kwargs.get('check_if_order_filled'))
                 self.strategy_execution_dao.update_fetch_by_column(
                     session=session, column_name='strategy_execution_id',
                     column_value=self.strategy_execution.strategy_execution_id,

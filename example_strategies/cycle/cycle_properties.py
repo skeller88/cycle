@@ -19,13 +19,12 @@ class CycleProperties:
 
     # id of exchange on which to trade
     exchange_id_to_trade: int = int(os.environ.get('EXCHANGE_ID_TO_TRADE', exchange_ids.binance))
-
     # hour start of buy window in UTC
-    buy_window_utc_hour_start: int = int(os.environ.get('BUY_WINDOW_UTC_HOUR_START', 11))
+    buy_window_utc_hour_start: int = int(os.environ.get('BUY_WINDOW_UTC_HOUR_START', 20))
     # hour end of buy window in UTC
-    buy_window_utc_hour_end: int = int(os.environ.get('BUY_WINDOW_UTC_HOUR_END', 13))
+    buy_window_utc_hour_end: int = int(os.environ.get('BUY_WINDOW_UTC_HOUR_END', 22))
 
     # hour start of sell window in UTC
-    sell_window_utc_hour_start: int = int(os.environ.get('SELL_WINDOW_UTC_HOUR_START', 20))
+    sell_window_utc_hour_start: int = int(os.environ.get('SELL_WINDOW_UTC_HOUR_START', 11))
     # hour end of sell window in UTC
-    sell_window_utc_hour_end: int = int(os.environ.get('SELL_WINDOW_UTC_HOUR_END', 22))
+    sell_window_utc_hour_end: int = int(os.environ.get('SELL_WINDOW_UTC_HOUR_END', 13))
